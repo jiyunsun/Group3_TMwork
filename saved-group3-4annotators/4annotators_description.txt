@@ -1,1 +1,3 @@
-
+In this file foder, we have 4 annotators
+annotator1: Jiyun Sun    annotator2: Giorgio Malinverni  annotator3: Alyssa Hastie-McGregor  annotator4: Tessel Wisman
+The annotation work is for negation cue for the assignment2
