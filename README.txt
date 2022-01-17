@@ -1,4 +1,4 @@
-This is the group 3 text mining github repository
+This is the TMgroup3's github repository
 
 
 
