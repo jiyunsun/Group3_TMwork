@@ -20,11 +20,19 @@ def get_token(row):
 def get_negcue_label(row):
     return row[4]
 
+def list_of_tokens(csv_object):
+    tokens = []
+    for row in csv_object:
+        tokens.append(get_token(row))
+    return tokens
+
 def main(args=None):
     if not args:
         args = sys.argv
     path = args[1]
     conll = read_in_conll_file(path)
+    tokenlist = list_of_tokens(conll)
+    print(tokenlist)
 
 args = ['x', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\bioscope-corpus\bioscope.clinical.columns.txt']
 main(args)
