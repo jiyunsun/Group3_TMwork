@@ -1,18 +1,11 @@
-from read_corpus import *
+import csv
 from nltk import ngrams
 from collections import Counter
+import string
+from utils import *
 
-neg_prefixed = ['un', 'in', 'im', 'il', 'dis']
-
-def generate_ngrams(token, n):
-    n_grams = [[],[]]
-    for i in reversed(range(1, n+1)):
-        igrams = [''.join(gram) for gram in ngrams(token, i)]
-        start_igram = igrams[0]
-        end_igram = igrams[-1]
-        n_grams[0].append(start_igram)
-        n_grams[1].append(end_igram)
-    return n_grams
+neg_prefixed = ['un', 'in', 'im', 'il', 'dis', 'ir', 'non']
+neg_suffixed = ['less']
 
 def generate_lexicon(tokenlist, n=5):
     lexicon = Counter()
@@ -26,19 +19,36 @@ def generate_lexicon(tokenlist, n=5):
         lexicon.update(ngrams)
     return lexicon
 
+def generate_ngrams(token, n):
+    start_igrams = []
+    end_igrams = []
+    #print(token)
+    for i in reversed(range(1, n+1)):
+        #print(i)
+        igrams = [''.join(gram) for gram in ngrams(token, i)]
+        start_igrams.append(igrams[0])
+        end_igrams.append(igrams[-1])
+
+        #print('test', igrams[0])
+    #print(start_igrams, end_igrams)
+    return start_igrams, end_igrams
+
 def create_ngram_features(token, lexicon, n=5):
+    affixless_token = ''
     for prefix in neg_prefixed:
         if token.startswith(prefix):
-            prefixless_token = token.replace(prefix,'')
-            if len(prefixless_token) < n:
-                n = len(prefixless_token)
-
-            if prefixless_token:
-                #print(prefix, prefixless_token, end=' ')
-                grams = generate_ngrams(prefixless_token, n)
-                #print(grams)
-                return grams, lexicon[prefixless_token]
-    return ['_', '_']
+            affixless_token = token[len(prefix):]
+    if token.endswith('less'):
+        affixless_token = token[:-len('less')]
+    if len(affixless_token) > 0:
+        if len(affixless_token) < n:
+            n = len(affixless_token)
+        start_ngrams, end_ngrams = generate_ngrams(affixless_token, n)
+        return start_ngrams, end_ngrams, lexicon[affixless_token]
+    if len(token) < n:
+        n = len(token)
+    start_ngrams, end_ngrams = generate_ngrams(token, n)
+    return start_ngrams, end_ngrams, 0
 
 
 def main(args=None):
@@ -49,12 +59,12 @@ def main(args=None):
     tokenlist = list_of_tokens(conll)
     lexicon = generate_lexicon(tokenlist)
     print(lexicon)
-    for token in tokenlist:
+    for token in tokenlist[:40000]:
         n = 5
         features = create_ngram_features(token, lexicon, n)
         n_gram_feature = features[0]
         lexicon_feature = features[1]
-        print(n_gram_feature, lexicon_feature)
+        #print(n_gram_feature, lexicon_feature)
 
 
 args = ['x', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\bioscope-corpus\bioscope.papers.columns.txt']
