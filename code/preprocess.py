@@ -17,7 +17,7 @@ def remove_blanks(conll_file, outputfilename):
 
             csvwriter.writerow(row)
 
-def add_feature_columns(conll_file, outputfilename, lexicon, tokenlist):
+def add_feature_columns(conll_file, outputfilename, tokenlist):
     '''
     Preprocess the file by converting the content and adding feature columns.
     Converts: labels from BIO-NEG(cues) to binary format (NEG if NegCue, O otherwise)
@@ -40,16 +40,17 @@ def add_feature_columns(conll_file, outputfilename, lexicon, tokenlist):
     :param tokenlist: the list of tokens in the corpus (ordered)
     '''
     conll_object = read_in_conll_file(conll_file)
-    lexicon =  generate_lexicon(tokenlist)
+
 
     with open(outputfilename, 'w', newline='') as outputcsv:
         csvwriter = csv.writer(outputcsv, delimiter='\t')
-        header = ['doc_id', 'sentence_id', 'token_id', 'token', 'lemma', 'prev', 'next','pos', 'punct', 'prefix' 'suffix', 'infix', 'prev_tok_cue', 'sbs_count', 'match_one', 'match_multi', 'negcuelabel']
+        header = ['doc_id', 'sentence_id', 'token_id', 'token', 'lemma', 'prev', 'next','pos', 'punct', 'prefix', 'suffix', 'infix', 'prev_tok_cue', 'sbs_count', 'match_one', 'match_multi', 'negcuelabel']
         csvwriter.writerow(header)
         # initialize previous_token information as empty
         prev_token_label = 0
         prev_token = ''
         doc = tokenlist2doc(tokenlist) # create a SpaCy pipeline
+        lexicon =  generate_lexicon(doc)
         for i, (row, token) in enumerate(zip(conll_object, doc)):
             lemma = get_lemma(token)
             pos = get_PoS(token)
@@ -61,24 +62,13 @@ def add_feature_columns(conll_file, outputfilename, lexicon, tokenlist):
                 next_token = get_lemma(doc[i + 1])
             except IndexError: # we want to make sure the program does not crash if reaching the end of the file
                 next_token = ''
-            start_ngrams, end_ngrams, sbs_count = create_ngram_features(token.text, lexicon, n=5)
+            start_ngrams, end_ngrams, sbs_count = create_ngram_features(token.text, token.tag_, lexicon, n=5)
             matches_one = matches_oneword_negexpr(token.text)
             matches_multi = matches_multiword_negexpr(token.text, i, doc)
-            row.insert(4, lemma)
-            row.insert(5, prev_token)
-            row.insert(6, next_token)
-            row.insert(7, pos)
-            row.insert(8, punctuation)
-            row.insert(9, prefix)
-            row.insert(10, ends_with_suffix)
-            row.insert(11, infix)
-            row.insert(12, prev_token_label)
-            row.insert(13, sbs_count)
-            row.insert(14, matches_one)
-            row.insert(15, matches_multi)
 
             label = get_negcue_label(row, -1)
             row[-1] = label # this replaces the BIO label with the binary label
+            row = row[:4] + [lemma, prev_token,next_token, pos, punctuation, prefix, ends_with_suffix, infix, prev_token_label, sbs_count, matches_one, matches_multi, label]
             prev_token_label = label # update the previous token to current token
             prev_token = token
             csvwriter.writerow(row)

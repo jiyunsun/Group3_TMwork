@@ -14,6 +14,7 @@ def custom_tokenizer(nlp):
 
 def read_in_conll_file(conll_file, delimiter='\t'):
     '''
+    THIS CODE WAS ADAPTED FROM THE ML4NLP COURSE
     Read in conll file and return structured object
 
     :param conll_file: path to conll_file
@@ -42,7 +43,10 @@ def get_token(row):
 
 def get_negcue_label(row, id):
     '''This function retrieves the label and removes the BIO-aspect'''
-    return row[id][2:]
+    if row[id] != 'O':
+        return row[id][2:]
+    return 'O'
+
 
 def tokenlist2doc(token_list):
     '''This function applies the custion SpaCy pipeline to our list of tokens'''
@@ -139,18 +143,20 @@ def is_punctuation(token):
         return 1
     return 0
 
-def generate_lexicon(tokenlist, n=5):
+def generate_lexicon(doc,  n=5):
     '''Generates the lexicon used in the substring-count feature. This lexicon is a counter object
         which contains the token itself and the word initial n-gram up to 5 characters.'''
     lexicon = Counter()
-    lexicon.update(tokenlist)
-    for token in tokenlist:
+    token_pos_list = [(token.text, token.tag_) for token in doc]
+    lexicon.update(token_pos_list)
+    for token, tag in token_pos_list:
         if len(token) < n:
             n_new = len(token)
         else:
             n_new = n
         ngrams = generate_ngrams(token, n_new)[0] # start ngrams
-        lexicon.update(ngrams)
+        gram_pos_list = [(gram, tag) for gram in ngrams]
+        lexicon.update(gram_pos_list)
     return lexicon
 
 def generate_ngrams(token, n=5):
@@ -168,7 +174,7 @@ def generate_ngrams(token, n=5):
 
     return start_igrams, end_igrams
 
-def create_ngram_features(token, lexicon, n=5):
+def create_ngram_features(token, POS, lexicon, n=5):
     '''Function that return the ngrams and the substring count feature
         :param: token: the token (str)
         :param: lexicon: the lexicon of tokens in the corpus
@@ -187,7 +193,9 @@ def create_ngram_features(token, lexicon, n=5):
         if len(affixless_token) < n:
             n = len(affixless_token)
         start_ngrams, end_ngrams = generate_ngrams(affixless_token, n)
-        substring_count =  lexicon[start_ngrams[0]]
+        substring_count = 0
+        for gram in start_ngrams:
+            substring_count += lexicon[(gram, POS)]
         return start_ngrams, end_ngrams, substring_count# first (longest start ngram of affixless token is the match we search for)
     if len(token) < n:
         n = len(token)
