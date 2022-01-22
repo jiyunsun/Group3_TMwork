@@ -44,8 +44,8 @@ def get_token(row):
 def get_negcue_label(row, id):
     '''This function retrieves the label and removes the BIO-aspect'''
     if row[id] != 'O':
-        return 1
-    return 0
+        return 'NEG'
+    return 'O'
 
 
 def tokenlist2doc(token_list):
