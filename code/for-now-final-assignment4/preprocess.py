@@ -41,7 +41,9 @@ def add_feature_columns(conll_file, outputfilename, tokenlist):
     '''
     conll_object = read_in_conll_file(conll_file)
 
-
+    B=0
+    I=0
+    O=0
     with open(outputfilename, 'w', newline='') as outputcsv:
         csvwriter = csv.writer(outputcsv, delimiter='\t')
         header = ['doc_id', 'sentence_id', 'token_id', 'token', 'lemma', 'prev', 'next','pos', 'punct', 'prefix', 'suffix', 'infix', 'prev_tok_cue','sbs_count', 'match_one', 'match_multi',  'negcuelabel']
@@ -68,12 +70,19 @@ def add_feature_columns(conll_file, outputfilename, tokenlist):
             matches_multi = matches_multiword_negexpr(token, i, doc)
 
             label = get_negcue_label(row, -1)
+            if label == 'B-NEG':
+                B +=1
+            elif label == 'I-NEG':
+                I +=1
+            else:
+                O +=1
             row[-1] = label # this replaces the BIO label with the binary label
             row = row[:3] + [token, lemma, prev_token,next_token, pos, punctuation, prefix, ends_with_suffix, infix, prev_token_label, sbs_count, matches_one, matches_multi, label]
             prev_token_label = label # update the previous token to current token
             prev_token = lemma
             csvwriter.writerow(row)
 
+    print(B, I, O)
 def main(args=None):
     if not args:
         args = sys.argv

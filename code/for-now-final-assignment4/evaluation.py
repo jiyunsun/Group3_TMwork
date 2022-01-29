@@ -3,6 +3,8 @@ import pandas as pd
 import os
 from collections import defaultdict, Counter
 import glob
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
+## THIS SCRIPT WAS ADAPTED FROM THE ML4NLP COURSE
 
 def extract_annotations(inputfile, annotationcolumn, delimiter='\t'):
     '''
@@ -200,17 +202,24 @@ def main(my_args=None):
     if my_args is None:
         my_args = sys.argv
 
-    print('Computing Precision, Recall and F score and confusion matrix for the following parameters:')
+    # print('Computing Precision, Recall and F score and confusion matrix for the following parameters:')
     #print('Gold file', my_args[1])
     #print('Model output folder', my_args[3])
     #print('System name as given:', my_args[5])
-    print()
+
     for modelfile in glob.glob(my_args[3] + '*.txt'):
-        print(modelfile)
+        print('-'.join(modelfile.split('\\')[-1:][0].split("_"))[:-4])
         system_info = create_system_information([modelfile] + my_args[4:])
         #print(system_info)
+        #gold_annotations = extract_annotations(my_args[1], 'negcuelabel')
+        #system_annotations = extract_annotations(modelfile, 'negcuelabel')
+        #report = pd.DataFrame(classification_report(gold_annotations, system_annotations, output_dict = True)).transpose()
+        #print(report)
+        #matrix = confusion_matrix(gold_annotations, system_annotations)
+        #cm_display = ConfusionMatrixDisplay(matrix, display_labels = ["B-NEG", "I-NEG", "O"]).plot()
+        #plt.show()
         evaluations = run_evaluations(my_args[1], my_args[2], system_info)
-        print('\n')
+        #print('\n')
         #print(feats)
         provide_output_tables(evaluations)
         #check_eval = identify_evaluation_value('system1', 'O', 'f-score', evaluations)
@@ -220,6 +229,6 @@ def main(my_args=None):
 
 # these can come from the commandline using sys.argv for instance
 #os.chdir(r'C:\Users\Tessel Wisman\Documents\TextMining\ml4nlp\ma-ml4nlp-labs\code\assignment3')
-my_args =['python', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-dev-simple.v2-preprocessed.txt', 'negcuelabel', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMWork\models\CRF-finalmodels\\', 'negcuelabel', 'SVM']
+my_args =['python', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-dev-simple.v2-preprocessed.txt', 'negcuelabel', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMwork\models\SVM\\', 'negcuelabel', 'SVM']
 #if __name__ == '__main__':
 main(my_args)

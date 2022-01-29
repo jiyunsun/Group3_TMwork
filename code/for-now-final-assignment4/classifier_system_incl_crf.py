@@ -71,7 +71,7 @@ def create_classifier(train_features, train_targets, classifier_type):
     '''
     if classifier_type == 'SVM':
         parameters = dict(C = (0.01, 0.1, 1.0), loss= ('hinge', 'squared_hinge'), tol=(1e-4, 1e-3, 1e-2, 1e-1))
-        svc = LinearSVC()
+        svc = LinearSVC(max_iter=2000)
         grid = GridSearchCV(estimator=svc, param_grid=parameters, scoring='f1_macro')
         vec = DictVectorizer()
         features_vectorized = vec.fit_transform(train_features)
@@ -106,11 +106,8 @@ def classify_embeddings_data(model, inputdata, outputfile, word_embedding_model,
             num_features: number of features used in the model
 
     '''
-    if model_type == 'CRF':
-        features = extract_CRF_embeddings_as_features(inputdata,selected_features)
-    else:
-        features = extract_embeddings_as_features(inputdata,selected_features)
-        print('features extracted')
+    features = extract_embeddings_as_features(inputdata,word_embedding_model, num_features, selected_features, vectorizer=vectorizer)
+    print('features extracted')
     predictions = model.predict(features)
     if model_type == 'CRF':
         predictions = [prediction for sent in predictions for prediction in sent]
@@ -333,7 +330,7 @@ def extract_embeddings_as_features_and_gold(conllfile, word_embedding_model, num
     traditional_features = []
     conllinput = open(conllfile, 'r')
     csvreader = csv.reader(conllinput, delimiter='\t',quotechar='|')
-    other_feats_to_extract = [s for s in selected_features if s != 'prev' and s!= 'next']
+    other_feats_to_extract = [s for s in selected_features if s != 'prev' and s!= 'next' and s != 'token' and s!='lemma']
     #print(other_feats_to_extract)
     next(csvreader)
     for row in csvreader:
@@ -365,7 +362,9 @@ def extract_embeddings_as_features_and_gold(conllfile, word_embedding_model, num
         vectorizer.fit(traditional_features)
 
     sparse_features = vectorizer.transform(traditional_features)
+
     combined_vectors = combine_sparse_and_dense_features(dense_features, sparse_features)
+
     return combined_vectors, labels, vectorizer
 
 def extract_embeddings_as_features(conllfile,word_embedding_model, num_features, selected_features, vectorizer=None):
@@ -417,6 +416,7 @@ def extract_embeddings_as_features(conllfile,word_embedding_model, num_features,
         vectorizer = DictVectorizer()
         vectorizer.fit(traditional_features)
     sparse_features = vectorizer.transform(traditional_features)
+
     combined_vectors = combine_sparse_and_dense_features(dense_features, sparse_features)
     return combined_vectors
 
@@ -427,7 +427,7 @@ def main(argv=None):
 
     trainingfile = r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-training-simple.v2-preprocessed.txt'
     inputfile = r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-dev-simple.v2-preprocessed.txt'
-    output_basepath = r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMWork\models\260122'
+    output_basepath = r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMWork\models\280122'
 
     feature_ablation = argv[1]
     embeddings = argv[2]
@@ -437,29 +437,30 @@ def main(argv=None):
      ### this model has 300 dimensions so we set the number of features to 300
 
     # These are all feature combinations that were tested in the feature ablation
-    feature_selections =[['token'], ['lemma'],
-    #['lemma', 'prev_tok_cue'], ['lemma', 'prev'], # is expected to up the performance for SVM, but not for CRF
-    # ['lemma', 'prev', 'next'],
-    # ['lemma', 'prev', 'next', 'prev_tok_cue'],
-    # ['token','lemma', 'prev', 'next'],
-    # ['token', 'lemma', 'prev', 'next', 'prev_tok_cue'], # is there a value in adding both previous and next token?
-    # ['lemma', 'match_one', 'match_multi'], # how does this compare to rule-matching single- and multiword tokens?
-    #
-    # [ 'lemma', 'prefix', 'suffix', 'infix'], [ 'lemma', 'infix', 'sbs_count'], # affix features versus Lapponi feature
-    # [ 'lemma', 'prefix', 'suffix', 'infix', 'sbs_count'], # combination of both
-    # ['lemma', 'pos', 'prefix', 'suffix', 'infix'],
-    # ['lemma', 'pos', 'prefix', 'suffix', 'infix', 'sbs_count'],
-    [ 'lemma', 'prefix', 'suffix', 'infix', 'prev_tok_cue', 'match_one']]#,
-    #['lemma', 'pos', 'prefix', 'suffix', 'infix', 'sbs_count', 'match_one', 'match_multi']]#, # add rule-based + affixal to check basic performance
-    #feature_list], # all features at once
+    feature_selections =[['lemma'],
+    ['lemma', 'prev_tok_cue'], ['lemma', 'prev'], # is expected to up the performance for SVM, but not for CRF
+    ['lemma', 'prev', 'next'],
+    ['lemma', 'prev', 'next', 'prev_tok_cue'],
+    ['token','lemma', 'prev', 'next'],
+    ['token', 'lemma', 'prev', 'next', 'prev_tok_cue'], # is there a value in adding both previous and next token?
+    ['lemma', 'match_one', 'match_multi'], # how does this compare to rule-matching single- and multiword tokens?
+
+    [ 'lemma', 'prefix', 'suffix', 'infix'],
+    [ 'lemma', 'infix', 'sbs_count'], # affix features versus Lapponi feature
+    [ 'lemma', 'prefix', 'suffix', 'infix', 'sbs_count'], # combination of both
+    ['lemma', 'pos', 'prefix', 'suffix', 'infix'],
+    ['lemma', 'pos', 'prefix', 'suffix', 'infix', 'sbs_count'],
+    [ 'lemma', 'prefix', 'suffix', 'infix', 'prev_tok_cue', 'match_one'],#,
+    ['lemma', 'pos', 'prefix', 'suffix', 'infix', 'sbs_count', 'match_one', 'match_multi'], # add rule-based + affixal to check basic performance
+    feature_list, # all features at once
     #also add one by one
-    #['token', 'lemma'],['token', 'lemma', 'prev'], ['token', 'lemma', 'prev','next'], ['token', 'lemma', 'prev','next','pos'],
-    #['token', 'lemma', 'prev','next','pos', 'punct'], ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix'],
-    #['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix'], ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix'],
-    #['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count'],
-    #['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count', 'match_one'],
-    #['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count', 'match_one', 'match_multi'],
-    #['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count', 'match_one', 'match_multi','prev_tok_cue']]
+    ['token', 'lemma'],['token', 'lemma', 'prev'], ['token', 'lemma', 'prev','next'], ['token', 'lemma', 'prev','next','pos'],
+    ['token', 'lemma', 'prev','next','pos', 'punct'], ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix'],
+    ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix'], ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix'],
+    ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count'],
+    ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count', 'match_one'],
+    ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count', 'match_one', 'match_multi'],
+    ['token', 'lemma', 'prev','next','pos', 'punct', 'prefix','suffix','infix', 'sbs_count', 'match_one', 'match_multi','prev_tok_cue']]
     # If we don't want to run the ablation, the standard system is run with the basics
     if not feature_ablation:
         feature_selections = [['lemma']]
@@ -471,7 +472,7 @@ def main(argv=None):
         word_embedding_model = gensim.models.KeyedVectors.load_word2vec_format(embeddings_path, binary=True)
         print('Done')
 
-    for model in ['CRF']:
+    for model in ['SVM']:
         print('Model used:', model)
         for feature_select in feature_selections:
             print('Features selected in this run:',feature_select)
@@ -484,11 +485,11 @@ def main(argv=None):
             classify_data(ml_model, vec, feature_select, inputfile, output_basepath + '_' + model + '_'.join(feature_select) + '.txt', model)
             print('finished training the ', model, 'model on', feature_select )
             if embeddings and model != 'CRF':
-                feature_select_emb = [f for f in feature_select if f != 'token' and f!= 'prev' and f!= 'next']
-                embedding_features, embedding_gold_labels, vec = extract_embeddings_as_features_and_gold(trainingfile, word_embedding_model, num_features, feature_select_emb)
+                #feature_select_emb = [f for f in feature_select if f != 'token' and f!= 'lemma' and f!=  'prev' and f!= 'next']
+                embedding_features, embedding_gold_labels, vec = extract_embeddings_as_features_and_gold(trainingfile, word_embedding_model, num_features, feature_select)
                 print('starting training with word embeddings')
                 ml_model_emb = create_embeddings_classifier(embedding_features, embedding_gold_labels, model)
-                classify_embeddings_data(ml_model_emb, inputfile, output_basepath + '_WE_' + model + '_'.join(feature_select) + '.txt', word_embedding_model, vec, num_features, feature_select_emb, model)
+                classify_embeddings_data(ml_model_emb, inputfile, output_basepath + '_WE_' + model + '_'.join(feature_select) + '.txt', word_embedding_model, vec, num_features, feature_select, model)
                 print('finished with word embeddings for', model, 'on', feature_select)
 
 #args = ['python','../../data/conll2003_ret.train-preprocessed_with_feats.conll', '../../data/conll2003_ret.test-preprocessed_chunks.conll', '../../models/1612_cl_fa_non_scaled_', r'C:\Users\Tessel Wisman\Documents\TextMining\GoogleNews-vectors-negative300\GoogleNews-vectors-negative300.bin', False, True]
@@ -496,5 +497,5 @@ def main(argv=None):
 #if __name__ == '__main__':
 #    main()
 
-args = ['x', True, False]
+args = ['x', True, True]
 main(args)
