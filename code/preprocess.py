@@ -6,16 +6,19 @@ import string
 from utils import *
 
 def remove_blanks(conll_file, outputfilename):
-    ''' Checks if the file contains any blank lines and removes them'''
+    ''' Checks if the file contains any blank lines and removes them
+        param: conll_file: the path to the conllfile to preprocess (str)
+        param: outputfilename: output path (str)'''
 
     conll_object = read_in_conll_file(conll_file)
+
     with open(outputfilename, 'w', newline='') as outputcsv:
         csvwriter = csv.writer(outputcsv, delimiter='\t')
         for row in conll_object:
-            if len(row) <= 0:
+            if len(row) <= 0: # Checks if empty row and skips those
                 continue
 
-            csvwriter.writerow(row)
+            csvwriter.writerow(row) # rewrite
 
 def add_feature_columns(conll_file, outputfilename, tokenlist):
     '''
@@ -41,16 +44,19 @@ def add_feature_columns(conll_file, outputfilename, tokenlist):
     '''
     conll_object = read_in_conll_file(conll_file)
 
-
+    B=0 # COUNTS of classes
+    I=0
+    O=0
     with open(outputfilename, 'w', newline='') as outputcsv:
+
         csvwriter = csv.writer(outputcsv, delimiter='\t')
-        header = ['doc_id', 'sentence_id', 'token_id', 'token', 'lemma', 'prev', 'next','pos', 'punct', 'prefix', 'suffix', 'infix', 'sbs_count', 'match_one', 'match_multi', 'prev_tok_cue', 'negcuelabel']
+        header = ['doc_id', 'sentence_id', 'token_id', 'token', 'lemma', 'prev', 'next','pos', 'punct', 'prefix', 'suffix', 'infix', 'prev_tok_cue','sbs_count', 'match_one', 'match_multi',  'negcuelabel']
         csvwriter.writerow(header)
         # initialize previous_token information as empty
         prev_token_label = 0
         prev_token = ''
         doc = tokenlist2doc(tokenlist) # create a SpaCy pipeline
-        lexicon =  generate_lexicon(doc)
+        lexicon =  generate_lexicon(doc) # generate the lexicon we need for the sbs_count feature
         for i, (row, doc_token) in enumerate(zip(conll_object, doc)):
             token = doc_token.text.lower()
             lemma = get_lemma(doc_token)
@@ -68,11 +74,19 @@ def add_feature_columns(conll_file, outputfilename, tokenlist):
             matches_multi = matches_multiword_negexpr(token, i, doc)
 
             label = get_negcue_label(row, -1)
-            row[-1] = label # this replaces the BIO label with the binary label
+            if label == 'B-NEG':
+                B +=1
+            elif label == 'I-NEG':
+                I +=1
+            else:
+                O +=1
             row = row[:3] + [token, lemma, prev_token,next_token, pos, punctuation, prefix, ends_with_suffix, infix, prev_token_label, sbs_count, matches_one, matches_multi, label]
             prev_token_label = label # update the previous token to current token
             prev_token = lemma
-            csvwriter.writerow(row)
+            csvwriter.writerow(row) # write everything
+
+    print('Number of B-NEG tags: {}\n number of I-NEG tags: {}\n number of O tags: {}\n'.format(B,I,O))
+
 
 def main(args=None):
     if not args:
@@ -81,11 +95,12 @@ def main(args=None):
     conll = read_in_conll_file(path)
     tokenlist = list_of_tokens(conll)
 
-    no_blanks_path = r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-training-simple.v2_rem_nl.txt'
+    no_blanks_path =  path[:-4]+ '-rem_nl.txt'
     remove_blanks(path, no_blanks_path) # remove the blank lines before further processing
-    out_path = r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-training-simple.v2-preprocessed.txt'
+    out_path = path[:-4]  + '-preprocessed.txt'
     add_feature_columns(no_blanks_path, out_path, tokenlist)
     #print(tokenlist)
 
-args = ['x', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-training-simple.v2.txt']
-main(args)
+
+if __name__ == "__main__":
+    main()
