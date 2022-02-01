@@ -34,7 +34,12 @@ Instructions: run from commandline as python classifier_system.py [train_path] [
 [feature_ablation] True/False if you want to do a feature ablation study or just run the model with all features
 [embeddings] True/False if you also want to train the model on word embedding representations (this was made optional to save loading time)
 
-evaluations.py:
+----------evaluations.py -------------
+Prints evaluation report (P+R+F1 score) and confusion matrix for files in folder. Expects a folder containing model files that can be evaluated against the same gold standard.
+Instructions: run from commandline as python sample_analysis.py [path_to_gold] [path_to_folder]
+[path_to_gold] = path to gold file on your local machine 
+[path_to_folder] = path to folder where the models that should be evaluated are situated
+
 
 --------sample_analysis.py ----------
 Generates a CONLL format file that can be used for error analysis. Outputs a list of all wrong classifications and aligns their features, gold label and prediction.

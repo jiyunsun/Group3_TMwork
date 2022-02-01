@@ -1,0 +1,18 @@
+Python version used: 3.9
+
+csv
+string
+collections
+nltk
+spacy
+re
+sklearn (version = .23)
+sklearn_crfsuite
+pandas
+numpy
+sys
+random
+gensim
+os
+glob
+string
