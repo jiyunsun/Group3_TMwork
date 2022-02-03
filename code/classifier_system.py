@@ -470,9 +470,9 @@ def main(argv=None):
 
 #args = ['python','../../data/conll2003_ret.train-preprocessed_with_feats.conll', '../../data/conll2003_ret.test-preprocessed_chunks.conll', '../../models/1612_cl_fa_non_scaled_', r'C:\Users\Tessel Wisman\Documents\TextMining\GoogleNews-vectors-negative300\GoogleNews-vectors-negative300.bin', False, True]
 #main(args)
-#if __name__ == '__main__':
-#    main()
-import os
-os.chdir(r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMwork\code\\')
-args = ['x', '..\SEM-2012-corpus\SEM-2012-training-preprocessed.txt', '..\SEM-2012-corpus\SEM-2012-dev-preprocessed.txt', '..\models\\1222',  True, True]
-main(args)
+if __name__ == '__main__':
+    main()
+#import os
+#os.chdir(r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMwork\code\\')
+#args = ['x', '..\SEM-2012-corpus\SEM-2012-training-preprocessed.txt', '..\SEM-2012-corpus\SEM-2012-dev-preprocessed.txt', '..\models\\1222',  True, True]
+#main(args)
