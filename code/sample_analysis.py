@@ -11,6 +11,7 @@ def compare_incorrect_annotations(gold_file, sys_file, sys_col, outpath, categor
             gold_file: the path to the gold file (str)
             sys_file: the path to the system output file (str)
             sys_col: the annotation column for the system output file
+            outpath: the path of the document that we want to create
             category: optional parameter to print output for only one gold class
             delimiter: delimiter in csv file'''
 
