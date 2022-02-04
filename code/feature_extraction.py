@@ -50,7 +50,6 @@ def create_ngram_features(token, lexicon, n=5):
     start_ngrams, end_ngrams = generate_ngrams(token, n)
     return start_ngrams, end_ngrams, 0
 
-
 def main(args=None):
     if not args:
         args = sys.argv
