@@ -4,6 +4,7 @@ import os
 from collections import defaultdict, Counter
 import glob
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
+
 ## THIS SCRIPT WAS ADAPTED FROM THE ML4NLP COURSE
 
 def extract_annotations(inputfile, delimiter='\t'):
@@ -34,13 +35,13 @@ def obtain_counts(goldannotations, machineannotations):
     return evaluation_counts
 
 def obtain_pr_stats(evaluation_counts):
-    ''' This function creates a datastructure containing the True Positives, True Negatives, False Positives and False Negatives
-        for each class
-        params:
-            evaluation_counts: a dict of counters providing the counts for each predicted and gold class pair
-        returns:
-            stats_dict: a dictonary of defaultdicts as{'TP': {CLASS1: 0, CLASS2:7} ....}
-
+    ''' 
+    This function creates a datastructure containing the True Positives, True Negatives, False Positives and False Negatives
+    for each class
+    params:
+        evaluation_counts: a dict of counters providing the counts for each predicted and gold class pair
+    returns:
+        stats_dict: a dictonary of defaultdicts as{'TP': {CLASS1: 0, CLASS2:7} ....}
     '''
     stats_dict = {'TP' : defaultdict(int), 'TN' : defaultdict(int), 'FP':defaultdict(int), 'FN' : defaultdict(int)}
     for key, value in evaluation_counts.items():
@@ -104,7 +105,6 @@ def provide_confusion_matrix(evaluation_counts):
     df = pd.DataFrame.from_records(all_counts, columns=gold_classes, index=gold_classes)
     print(df.to_latex())
 
-
 def provide_output_tables(gold_annotations, system_annotations):
     '''
     Create tables based on the evaluation of various systems
@@ -120,7 +120,6 @@ def provide_output_tables(gold_annotations, system_annotations):
     evaluation_counts = obtain_counts(gold_annotations, system_annotations)
     provide_confusion_matrix(evaluation_counts)
 
-
 def main(my_args=None):
     '''
     Runs the evaluation of a single model (see README for instructions)
@@ -135,9 +134,6 @@ def main(my_args=None):
         gold_annotations = extract_annotations(gold)
         system_annotations = extract_annotations(modelfile)
         provide_output_tables(gold_annotations, system_annotations)
-
-
-
 #my_args =['python', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\SEM-2012-SharedTask-CD-SCO-simple.v2\SEM-2012-SharedTask-CD-SCO-test-preprocessed.txt', r'C:\Users\Tessel Wisman\Documents\TextMining\AppliedTMMethods\Group3_TMwork\models\testset\\']
 if __name__ == '__main__':
     print('EVAL')
