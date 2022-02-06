@@ -5,6 +5,8 @@ import spacy
 import string
 from utils import *
 
+## SOME CODE IN THIS SCRIPT WAS ADAPTED FROM THE ML4NLP COURSE
+
 def remove_blanks(conll_file, outputfilename):
     ''' Checks if the file contains any blank lines and removes them
         param: conll_file: the path to the conllfile to preprocess (str)
