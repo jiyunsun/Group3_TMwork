@@ -23,7 +23,6 @@ def remove_blanks(conll_file, outputfilename):
 def add_feature_columns(conll_file, outputfilename, tokenlist):
     '''
     Preprocess the file by converting the content and adding feature columns.
-    Converts: labels from BIO-NEG(cues) to binary format (NEG if NegCue, O otherwise)
     Adds:
         - token lemma
         - token POS tag

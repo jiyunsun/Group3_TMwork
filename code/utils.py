@@ -11,8 +11,7 @@ def custom_tokenizer(nlp):
     prefix_re = re.compile('''^\$[a-zA-Z0-9]''')
     return Tokenizer(nlp.vocab, prefix_search=prefix_re.search)
 
-
-def read_in_conll_file(conll_file, delimiter='\t'):
+def read_in_conll_file(conll_file, delimiter = '\t'):
     '''
     THIS CODE WAS ADAPTED FROM THE ML4NLP COURSE
     Read in conll file and return structured object
@@ -27,13 +26,16 @@ def read_in_conll_file(conll_file, delimiter='\t'):
     return conll_as_csvreader
 
 def list_of_tokens(csv_object):
-    ''' This function creates a list of tokens from a csv reader object'''
+    ''' 
+    This function creates a list of tokens from a csv reader object
+    
+    :param csv_object: a file read with a csv reader 
+    '''
     tokens = []
     for row in csv_object:
         if len(row) > 0:
             tokens.append(get_token(row))
     return tokens
-
 
 def get_token(row):
     '''This function converts the token to lowercase'''
@@ -42,18 +44,20 @@ def get_token(row):
     return token
 
 def get_negcue_label(row, id):
-    '''This function retrieves the label and removes the BIO-aspect'''
+    '''This function retrieves the label'''
     return row[id]
 
-
 def tokenlist2doc(token_list):
-    '''This function applies the custion SpaCy pipeline to our list of tokens'''
+    '''
+    This function applies the custion SpaCy pipeline to our list of tokens
+    
+    :param token_list: a list of tokens (ex. the result of the list_of_tokens function)
+    '''
     nlp = spacy.load('en_core_web_sm')
     nlp.tokenizer = custom_tokenizer(nlp)
     str = ' '
     doc = str.join(token_list)
     return nlp(doc)
-
 
 def get_lemma(spacy_token):
     '''Returns the lemma of the token'''
@@ -175,6 +179,7 @@ def generate_ngrams(token, n=5):
 def create_ngram_features(token, POS, lexicon, n=5):
     '''Function that return the ngrams and the substring count feature
         :param: token: the token (str)
+        :param: POS: the part of speech of the token
         :param: lexicon: the lexicon of tokens in the corpus
         :returns: start_igrams: the word initial character ngrams
         :returns: end_igrams: the word final character ngrams
